@@ -1,0 +1,423 @@
+/* ============================================================
+   OEMS — Premium Dashboard Stylesheet
+   BCA Final Year Project
+
+   VIVA EXPLANATION:
+   "I used CSS custom properties (variables) as a design
+   system. All colors, spacing, and shadows are defined once
+   at the top and reused everywhere — making the code easy
+   to maintain and change."
+============================================================ */
+
+
+/* ── 1. DESIGN TOKENS ──────────────────────────────────────
+   CSS variables are like constants in programming.
+   Define once, use everywhere. Change one value = update all.
+─────────────────────────────────────────────────────────── */
+:root {
+  /* Brand colors */
+  --navy:    #0A192F;
+  --navy-dk: #020617;
+  --cyan:    #06B6D4;
+  --indigo:  #6366F1;
+  --emerald: #10B981;
+  --amber:   #F59E0B;
+  --rose:    #F43F5E;
+
+  /* Layout dimensions */
+  --sidebar-w:  260px;
+  --navbar-h:   58px;
+
+  /* Box shadows — reusable depth levels */
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 20px rgba(0,0,0,0.09);
+  --shadow-lg: 0 8px 36px rgba(0,0,0,0.13);
+
+  /* Glowing shadows for buttons */
+  --glow-cyan:   0 4px 16px rgba(6,182,212,0.38);
+  --glow-indigo: 0 4px 16px rgba(99,102,241,0.38);
+
+  /* Animation speeds */
+  --fast: 0.15s ease;
+  --base: 0.25s ease;
+  --slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+
+/* ── 2. BASE RESET ─────────────────────────────────────────
+   box-sizing: border-box means padding is included in width,
+   so layout math becomes predictable.
+─────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: #eef2f7;
+  color: #1e293b;
+  overflow-x: hidden;
+  line-height: 1.5;
+}
+
+/* Clean custom scrollbar */
+::-webkit-scrollbar             { width: 5px; height: 5px; }
+::-webkit-scrollbar-track       { background: transparent; }
+::-webkit-scrollbar-thumb       { background: #c8d5e8; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+
+/* ── 3. ANIMATIONS ─────────────────────────────────────────
+   fadeUp: used for page load and card entrance effects.
+   Cards appear one by one using animation-delay (d1, d2...).
+─────────────────────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+/* Page wrapper — whole page fades in on load */
+.page-enter { animation: fadeUp 0.4s ease both; }
+
+/* Card stagger animations */
+.anim-in    { animation: fadeUp 0.35s ease both; }
+.anim-in-d1 { animation: fadeUp 0.35s 0.05s ease both; }
+.anim-in-d2 { animation: fadeUp 0.35s 0.10s ease both; }
+.anim-in-d3 { animation: fadeUp 0.35s 0.15s ease both; }
+.anim-in-d4 { animation: fadeUp 0.35s 0.20s ease both; }
+
+
+/* ── 4. SIDEBAR ────────────────────────────────────────────
+   Fixed left panel. On mobile it hides off-screen.
+   The .sidebar-open class (added by JS) slides it in.
+─────────────────────────────────────────────────────────── */
+.sidebar {
+  position: fixed;
+  top: 0; left: 0;
+  width: var(--sidebar-w);
+  height: 100%;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+
+  background: linear-gradient(175deg, #0d2137 0%, #071525 60%, var(--navy-dk) 100%);
+  border-right: 1px solid rgba(6, 182, 212, 0.09);
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3);
+
+  /* Start off-screen on mobile */
+  transform: translateX(calc(-1 * var(--sidebar-w)));
+  transition: transform var(--slow);
+}
+
+/* JS adds this class to show sidebar on mobile */
+.sidebar.sidebar-open {
+  transform: translateX(0);
+}
+
+/* Desktop (768px+): sidebar is always visible */
+@media (min-width: 768px) {
+  .sidebar { transform: translateX(0) !important; }
+}
+
+
+/* ── 5. NAV LINKS ──────────────────────────────────────────
+   Default state is muted. Hover = slightly brighter.
+   Active = cyan highlight with a left border glow.
+─────────────────────────────────────────────────────────── */
+.nav-link {
+  border-radius: 12px;
+  transition: all var(--fast);
+}
+.nav-link:hover { background: rgba(255,255,255,0.06); color: white; }
+
+/* Active page link */
+.nav-active {
+  background: rgba(6,182,212,0.13) !important;
+  color: #67E8F9 !important;
+  box-shadow: inset 3px 0 0 var(--cyan);
+}
+.nav-active .nav-icon {
+  background: rgba(6,182,212,0.22) !important;
+  color: #67E8F9 !important;
+}
+
+
+/* ── 6. MOBILE OVERLAY ─────────────────────────────────────
+   The dark background that appears when mobile sidebar opens.
+   Clicking it closes the sidebar (handled in JS).
+─────────────────────────────────────────────────────────── */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.65);
+  backdrop-filter: blur(3px);
+  z-index: 49;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.sidebar-overlay.overlay-visible {
+  display: block;
+  opacity: 1;
+}
+
+
+/* ── 7. MAIN CONTENT WRAPPER ───────────────────────────────
+   margin-left = 0 on mobile (sidebar is hidden).
+   margin-left = sidebar width on desktop.
+─────────────────────────────────────────────────────────── */
+.content-main {
+  margin-left: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  transition: margin-left var(--slow);
+}
+@media (min-width: 768px) {
+  .content-main { margin-left: var(--sidebar-w); }
+}
+
+
+/* ── 8. TOP NAVBAR ─────────────────────────────────────────
+   Sticky bar at top. Glassmorphism = frosted glass look.
+   backdrop-filter blurs whatever is behind the navbar.
+─────────────────────────────────────────────────────────── */
+.topnav {
+  height: var(--navbar-h);
+  background: rgba(255, 255, 255, 0.90);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(0,0,0,0.07);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Hamburger — visible on mobile, hidden on desktop */
+.hamburger-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px; height: 36px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: #475569;
+  cursor: pointer;
+  transition: all var(--fast);
+  flex-shrink: 0;
+}
+.hamburger-btn:hover  { background: #f1f5f9; }
+.hamburger-btn:active { transform: scale(0.93); }
+
+@media (min-width: 768px) {
+  .hamburger-btn { display: none; }
+}
+
+
+/* ── 9. GLASSMORPHISM CARDS ────────────────────────────────
+   Glass effect: semi-transparent white + backdrop blur.
+   The frosted look comes from blur + low opacity white.
+─────────────────────────────────────────────────────────── */
+.glass {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.68);
+  box-shadow: var(--shadow-md);
+}
+
+/* Dark glass for login/register pages */
+.glass-dark {
+  background: rgba(10, 25, 47, 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(6, 182, 212, 0.16);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+}
+
+/* Aliases for backward compatibility */
+.glass-card      { background:rgba(255,255,255,0.82); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,0.68); box-shadow:var(--shadow-md); }
+.glass-card-dark { background:rgba(10,25,47,0.72); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border:1px solid rgba(6,182,212,0.16); box-shadow:0 20px 60px rgba(0,0,0,0.45); }
+
+
+/* ── 10. STAT CARDS ────────────────────────────────────────
+   Cards lift upward on hover using translateY.
+   Colored left-border accents show the card's category.
+─────────────────────────────────────────────────────────── */
+.stat-card {
+  transition: transform var(--base), box-shadow var(--base);
+}
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Left-border accent colors */
+.accent-cyan    { border-left: 3px solid var(--cyan);    }
+.accent-indigo  { border-left: 3px solid var(--indigo);  }
+.accent-emerald { border-left: 3px solid var(--emerald); }
+.accent-amber   { border-left: 3px solid var(--amber);   }
+
+
+/* ── 11. BUTTONS ───────────────────────────────────────────
+   Gradient backgrounds + glow shadow + hover lift effect.
+   :active gives a "press" feel by moving the element down.
+─────────────────────────────────────────────────────────── */
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: linear-gradient(135deg, var(--cyan), #3B82F6);
+  color: white; font-weight: 600;
+  border: none; cursor: pointer;
+  box-shadow: var(--glow-cyan);
+  transition: all var(--base);
+}
+.btn-primary:hover  { transform: translateY(-2px); filter: brightness(1.08); }
+.btn-primary:active { transform: translateY(0); filter: brightness(0.96); }
+
+.btn-danger {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: linear-gradient(135deg, var(--rose), #e11d48);
+  color: white; font-weight: 600;
+  border: none; cursor: pointer;
+  transition: all var(--fast);
+}
+.btn-danger:hover  { transform: translateY(-1px); filter: brightness(1.1); }
+.btn-danger:active { transform: scale(0.96); }
+
+.btn-success {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: linear-gradient(135deg, var(--emerald), #059669);
+  color: white; font-weight: 600;
+  border: none; cursor: pointer;
+  box-shadow: 0 4px 14px rgba(16,185,129,0.32);
+  transition: all var(--base);
+}
+.btn-success:hover  { transform: translateY(-2px); filter: brightness(1.07); }
+.btn-success:active { transform: translateY(0); }
+
+.btn-indigo {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: linear-gradient(135deg, var(--indigo), #4F46E5);
+  color: white; font-weight: 600;
+  border: none; cursor: pointer;
+  box-shadow: var(--glow-indigo);
+  transition: all var(--base);
+}
+.btn-indigo:hover  { transform: translateY(-2px); filter: brightness(1.08); }
+.btn-indigo:active { transform: translateY(0); }
+
+
+/* ── 12. BADGES ────────────────────────────────────────────
+   Pill-shaped labels for roles (student, teacher) and
+   grades (pass, fail).
+─────────────────────────────────────────────────────────── */
+.badge {
+  display: inline-flex; align-items: center;
+  padding: 2px 10px;
+  border-radius: 99px;
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+.badge-student { background: #d1fae5; color: #065f46; }
+.badge-teacher { background: #e0e7ff; color: #3730a3; }
+.badge-admin   { background: #fce7f3; color: #9d174d; }
+.badge-pass    { background: #d1fae5; color: #065f46; }
+.badge-fail    { background: #fee2e2; color: #991b1b; }
+
+
+/* ── 13. DATA TABLE ────────────────────────────────────────
+   Clean table styling with subtle hover highlight.
+─────────────────────────────────────────────────────────── */
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table thead tr { background: rgba(6,182,212,0.04); }
+.data-table tbody tr { transition: background var(--fast); }
+.data-table tbody tr:hover { background: rgba(6,182,212,0.05); }
+
+
+/* ── 14. PROGRESS BAR ──────────────────────────────────────
+   Visual representation of a score.
+   Width is set inline: style="width: 75%"
+─────────────────────────────────────────────────────────── */
+.progress-bar  { height: 6px; border-radius: 99px; background: #e2e8f0; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 99px; transition: width 0.7s ease; }
+
+
+/* ── 15. EXAM OPTIONS ──────────────────────────────────────
+   Answer choices in take_exam. Highlights when clicked.
+─────────────────────────────────────────────────────────── */
+.option-label {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all var(--fast);
+  font-size: 14px;
+}
+.option-label:hover              { border-color: var(--cyan); background: rgba(6,182,212,0.04); }
+.option-label:has(input:checked) { border-color: var(--cyan); background: rgba(6,182,212,0.09); box-shadow: 0 0 0 3px rgba(6,182,212,0.13); }
+
+
+/* ── 16. FLASH ALERTS ──────────────────────────────────────
+   Notification messages (success, error, warning, info).
+─────────────────────────────────────────────────────────── */
+.alert-success { background: rgba(16,185,129,0.10); border-left: 3px solid var(--emerald); color: #065f46; }
+.alert-danger  { background: rgba(244,63,94,0.10);  border-left: 3px solid var(--rose);    color: #881337; }
+.alert-info    { background: rgba(6,182,212,0.10);  border-left: 3px solid var(--cyan);    color: #0e7490; }
+.alert-warning { background: rgba(245,158,11,0.10); border-left: 3px solid var(--amber);   color: #92400e; }
+
+
+/* ── 17. PAGE HEADER ───────────────────────────────────────
+   Title at top of each page. Syne font for display headings.
+─────────────────────────────────────────────────────────── */
+.page-header h1 {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 1.4rem;
+  color: #0f172a;
+  line-height: 1.2;
+}
+@media (min-width: 640px) {
+  .page-header h1 { font-size: 1.8rem; }
+}
+
+
+/* ── 18. PROFILE DROPDOWN ──────────────────────────────────
+   Pure CSS hover dropdown — no JavaScript needed!
+─────────────────────────────────────────────────────────── */
+.profile-dropdown {
+  display: none;
+  animation: fadeUp 0.2s ease both;
+}
+.profile-wrapper:hover .profile-dropdown,
+.profile-dropdown:focus-within {
+  display: block;
+}
+
+
+/* ── 19. AUTH BACKGROUND ───────────────────────────────────
+   Login / Register pages: dark navy with glowing orbs.
+   Made with multiple radial gradients layered on top.
+─────────────────────────────────────────────────────────── */
+.auth-bg {
+  background:
+    radial-gradient(ellipse at 15% 55%, rgba(6,182,212,0.20) 0%, transparent 60%),
+    radial-gradient(ellipse at 85% 15%, rgba(99,102,241,0.18) 0%, transparent 55%),
+    linear-gradient(135deg, #020617 0%, #0A192F 100%);
+}
+
+
+/* ── 20. PHYSICS / ANTIGRAVITY ─────────────────────────────
+   When gravity mode is ON, hide overflow so elements
+   don't scroll off the page as they fall.
+─────────────────────────────────────────────────────────── */
+body.physics-mode { overflow: hidden; }
+
+canvas#matter-render {
+  position: fixed; top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  pointer-events: none;
+  z-index: 10000;
+}
